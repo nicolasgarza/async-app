@@ -11,54 +11,54 @@ class HeroesCRUD:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-async def create(self, data: HeroCreate) -> Hero:
-    values = data.dict()
+    async def create(self, data: HeroCreate) -> Hero:
+        values = data.dict()
 
-    hero = Hero(**values)
-    self.session.add(hero)
-    await self.session.commit()
-    await self.session.refresh(hero)
+        hero = Hero(**values)
+        self.session.add(hero)
+        await self.session.commit()
+        await self.session.refresh(hero)
 
-    return hero
+        return hero
 
-async def get(self, hero_id: str | UUID) -> Hero:
-    statement = select(
-        Hero
-    ).where(
-        Hero.uuid == hero_id
-    )
-    results = await self.session.execute(statement=statement)
-    hero = results.scalar_one_or_none() # type: Hero | None
-
-    if hero is None:
-        raise HTTPException(
-            status_code=http_status.HTTP_404_NOT_FOUND,
-            detail="The hero hasn't been found!"
+    async def get(self, hero_id: str | UUID) -> Hero:
+        statement = select(
+            Hero
+        ).where(
+            Hero.uuid == hero_id
         )
-    
-    return hero
+        results = await self.session.execute(statement=statement)
+        hero = results.scalar_one_or_none() # type: Hero | None
 
-async def patch(self, hero_id: str | UUID, data: HeroPatch) -> Hero:
-    hero = await self.get(hero_id=hero_id)
-    values = data.dict(exclude_unset=True)
+        if hero is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="The hero hasn't been found!"
+            )
+        
+        return hero
 
-    for k, v in values.items():
-        setattr(hero, k, v)
+    async def patch(self, hero_id: str | UUID, data: HeroPatch) -> Hero:
+        hero = await self.get(hero_id=hero_id)
+        values = data.dict(exclude_unset=True)
 
-    self.session.add(hero)
-    await self.session.commit()
-    await self.session.refresh(hero)
+        for k, v in values.items():
+            setattr(hero, k, v)
 
-    return hero
+        self.session.add(hero)
+        await self.session.commit()
+        await self.session.refresh(hero)
 
-async def delete(self, hero_id: str | UUID) -> bool:
-    statement = delete(
-        Hero
-    ).where(
-        Hero.uuid == hero_id
-    )
+        return hero
 
-    await self.session.execute(statement=statement)
-    await self.session.commit()
+    async def delete(self, hero_id: str | UUID) -> bool:
+        statement = delete(
+            Hero
+        ).where(
+            Hero.uuid == hero_id
+        )
 
-    return True
+        await self.session.execute(statement=statement)
+        await self.session.commit()
+
+        return True

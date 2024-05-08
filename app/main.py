@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from app import settings
 from app.core.models import HealthCheck
+from app.router.api_v1.endpoints import api_router
 
 app = FastAPI(
     title=settings.project_name,
@@ -10,6 +11,8 @@ app = FastAPI(
     openapi_url=f"{settings.api_v1_prefix}/openapi.json",
     debug=settings.debug,
 )
+
+app.include_router(api_router, prefix=settings.api_v1_prefix)
 
 @app.get("/", response_model=HealthCheck, tags=["status"])
 async def health_check():
