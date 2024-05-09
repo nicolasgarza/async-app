@@ -36,7 +36,7 @@
     "case_delete": {
       "want": {
         "status": true,
-        "message": "The hero hasn't been found!"
+        "message": "The hero has been deleted!"
       }
     }
    }

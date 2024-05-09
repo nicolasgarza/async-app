@@ -23,7 +23,7 @@ async def test_create_hero(
         assert got[k] == v
 
     statement = select(Hero).where(Hero.uuid == got["uuid"])
-    results = await async_session.execute(statement=statement)
+    results = await async_session.exec(statement=statement)
     hero = results.scalar_one()
 
     for k, v in want.items():
@@ -37,7 +37,7 @@ async def test_get_hero(
 ):
     hero_data = test_data["initial_data"]["hero"]
     statement = insert(Hero).values(hero_data)
-    await async_session.execute(statement=statement)
+    await async_session.exec(statement=statement)
     await async_session.commit()
 
     response = await async_client.get(f"/heroes/{hero_data['uuid']}")
@@ -57,7 +57,7 @@ async def test_patch_hero(
 ):
     hero_data = test_data["initial_data"]["hero"]
     statement = insert(Hero).values(hero_data)
-    await async_session.execute(statement=statement)
+    await async_session.exec(statement=statement)
     await async_session.commit()
 
     payload = test_data["case_patch"]["payload"]
@@ -81,7 +81,7 @@ async def test_delete_hero(
 ):
     hero_data = test_data["initial_data"]["hero"]
     statement = insert(Hero).values(hero_data)
-    await async_session.execute(statement=statement)
+    await async_session.exec(statement=statement)
     await async_session.commit()
 
     response = await async_client.delete(f"/heroes/{hero_data['uuid']}")
@@ -98,7 +98,7 @@ async def test_delete_hero(
     ).where(
         Hero.uuid == hero_data["uuid"]
     )
-    results = await async_session.execute(statement=statement)
+    results = await async_session.exec(statement=statement)
     hero = results.scalar_one_or_none()
 
     assert hero is None

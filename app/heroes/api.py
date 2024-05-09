@@ -53,9 +53,9 @@ async def patch_hero_by_uuid(
     response_model=StatusMessage,
     status_code=http_status.HTTP_200_OK
 )
-async def delete_her_by_UUID(
-    hero_id: str,
-    heroes: HeroesCRUD = Depends(get_heroes_crud)
+async def delete_hero_by_uuid(
+        hero_id: str,
+        heroes: HeroesCRUD = Depends(get_heroes_crud)
 ):
     status = await heroes.delete(hero_id=hero_id)
 
