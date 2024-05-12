@@ -1,49 +1,42 @@
-from typing import Optional
+from datetime import datetime
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 
-from sqlalchemy import  Column, event
-from sqlalchemy.dialects.postgresql import ENUM 
-from sqlmodel import Field, SQLModel
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
 
-from app.core.models import TimestampModel, UUIDModel
+class UserRead(UserBase):
+    id: int
 
-prefix = "hrs"
+class UserCreate(UserBase):
+    password: str
 
-hrs_role_type = ENUM(
-    "mage",
-    "assassin",
-    "warrior",
-    "priest",
-    "tank",
-    name=f"{prefix}_role"
-)
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
-@event.listens_for(SQLModel.metadata, "before_create")
-def _create_enums(metadata, conn, **kw): #noqa: indirect usage
-    hrs_role_type.create(conn, checkfirst=True)
+class PostBase(BaseModel):
+    title: str
+    content: str
 
-class HeroBase(SQLModel):
-    nickname: str = Field(max_length=255, nullable=False)
-    role: Optional[str] = Field(
-        sa_column=Column(
-            "role",
-            hrs_role_type,
-            nullable=True
-        )
-    )
+class PostRead(PostBase):
+    id: int
+    created_at: datetime
+    author_id: int
 
-class Hero(
-    TimestampModel,
-    HeroBase,
-    UUIDModel,
-    table=True
-):
-    __tablename__ = f"{prefix}_heroes"
+class PostCreate(PostBase):
+    pass
 
-class HeroRead(HeroBase, UUIDModel):
-    ...
+class CommentBase(BaseModel):
+    content: str
 
-class HeroCreate(HeroBase):
-    ...
+class CommentRead(CommentBase):
+    id: int
+    created_at: datetime
+    author_id: int
+    post_id: int
 
-class HeroPatch(HeroBase):
-    nickname: Optional[str] = Field(max_length=255)
+class CommentCreate(CommentBase):
+    post_id: int

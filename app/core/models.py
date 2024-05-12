@@ -1,45 +1,37 @@
-import uuid as uuid_pkg
+from sqlmodel import SQLModel, Field
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
-from pydantic import BaseModel
-from sqlalchemy import text
-from sqlmodel import Field, SQLModel
+class UserBase(SQLModel):
+    username: str = Field(index=True, nullable=False, max_length=255)
+    email: str = Field(index=True, nullable=False, max_length=255)
 
-class HealthCheck(BaseModel):
-    name: str
-    version: str
-    description: str
+class User(UserBase, table=True):
+    __tablename__ = 'users'
+    id: int = Field(default=None, primary_key=True)
+    hashed_password: str = Field(nullable=False)
+    # Relationships
+    posts: list["Post"] = relationship("Post", back_populates="author", cascade="all, delete-orphan")
+    comments: list["Comment"] = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
 
-class UUIDModel(SQLModel):
-    uuid: uuid_pkg.UUID = Field(
-        default_factory=uuid_pkg.uuid4,
-        primary_key=True,
-        index=True,
-        nullable=False,
-        sa_column_kwargs={
-            "server_default": text("gen_random_uuid()"),
-            "unique": True
-        }
-    )
+class Post(SQLModel, table=True):
+    __tablename__ = 'posts'
+    id: int = Field(default=None, primary_key=True)
+    title: String = Field(nullable=False)
+    content: String = Field(nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    # Relationships
+    author: User = relationship("User", back_populates="posts")
+    comments: list["Comment"] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
 
-class TimestampModel(SQLModel):
-    created_at: datetime = Field(
-        default_factory = datetime.utcnow, 
-        nullable=False,
-        sa_column_kwargs={
-            "server_default": text("current_timestamp(0)")
-        }
-    )
-
-    updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        nullable=False,
-        sa_column_kwargs={
-            "server_default": text("current_timestamp(0)"),
-            "onupdate": text("current_timestamp(0)")
-        }
-    )
-
-class StatusMessage(BaseModel):
-    status: bool
-    message: str
+class Comment(SQLModel, table=True):
+    __tablename__ = 'comments'
+    id: int = Field(default=None, primary_key=True)
+    content: String = Field(nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    author_id: int = Field(foreign_key="users.id")
+    post_id: int = Field(foreign_key="posts.id")
+    # Relationships
+    author: User = relationship("User", back_populates="comments")
+    post: Post = relationship("Post", back_populates="comments")
