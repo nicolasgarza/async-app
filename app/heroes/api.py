@@ -1,62 +1,88 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status as http_status
-
-from app.heroes.crud import HeroesCRUD
-from app.heroes.dependencies import get_heroes_crud
-from app.heroes.models import HeroCreate, HeroRead
-from app.core.models import StatusMessage
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.heroes.crud import BlogCRUD
+from app.heroes.dependencies import get_blog_crud
+from app.heroes.models import UserCreate, UserRead, UserUpdate, StatusMessage, PostCreate, PostRead, CommentCreate, CommentRead
 
 router = APIRouter()
 
 @router.post(
-    "",
-    response_model=HeroRead,
+    "/users",  
+    response_model=UserRead,
     status_code=http_status.HTTP_201_CREATED
 )
-async def create_hero(
-    data: HeroCreate,
-    heroes: HeroesCRUD = Depends(get_heroes_crud)
+async def create_user(
+    data: UserCreate,
+    crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    hero = await heroes.create(data=data)
-
-    return hero
+    user = await crud.create_user(data=data)
+    return user
 
 @router.get(
-    "/{hero_id}",
-    response_model=HeroRead,
+    "/users/{user_id}",
+    response_model=UserRead,
     status_code=http_status.HTTP_200_OK
 )
-async def get_hero_by_uuid(
-    hero_id: str,
-    heroes: HeroesCRUD = Depends(get_heroes_crud)
+async def get_user_by_id(
+    user_id: int, 
+    crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    hero = await heroes.get(hero_id=hero_id)
-
-    return hero
+    user = await crud.get_user(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.patch(
-    "/{hero_id}",
-    response_model=HeroRead,
+    "/users/{user_id}",
+    response_model=UserRead,
     status_code=http_status.HTTP_200_OK
 )
-async def patch_hero_by_uuid(
-    hero_id: str,
-    data: HeroCreate,
-    heroes: HeroesCRUD = Depends(get_heroes_crud)
+async def update_user_by_id(
+    user_id: int, 
+    data: UserUpdate, 
+    crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    hero = await heroes.patch(hero_id=hero_id, data=data)
+    user = await crud.update_user(user_id=user_id, data=data)
+    return user
 
-    return hero
-
+# User delete endpoint
 @router.delete(
-    "/{hero_id}",
+    "/users/{user_id}",
     response_model=StatusMessage,
     status_code=http_status.HTTP_200_OK
 )
-async def delete_hero_by_uuid(
-        hero_id: str,
-        heroes: HeroesCRUD = Depends(get_heroes_crud)
+async def delete_user_by_id(
+    user_id: int,
+    crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    status = await heroes.delete(hero_id=hero_id)
+    await crud.delete_user(user_id=user_id)
+    return {"status": True, "message": "User has been deleted"}
 
-    return {"status": status, "message": "The hero has been deleted!"}
+# Post creation endpoint
+@router.post(
+    "/posts",
+    response_model=PostRead,
+    status_code=http_status.HTTP_201_CREATED
+)
+async def create_post(
+    data: PostCreate,
+    author_id: int, 
+    crud: BlogCRUD = Depends(get_blog_crud)
+):
+    post = await crud.create_post(data=data, author_id=author_id)
+    return post
+
+# Comment creation endpoint
+@router.post(
+    "/comments",
+    response_model=CommentRead,
+    status_code=http_status.HTTP_201_CREATED
+)
+async def create_comment(
+    data: CommentCreate,
+    author_id: int,
+    crud: BlogCRUD = Depends(get_blog_crud)
+):
+    comment = await crud.create_comment(data=data, author_id=author_id)
+    return comment
