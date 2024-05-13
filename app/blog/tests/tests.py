@@ -3,16 +3,16 @@ from httpx import AsyncClient
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.heroes.models import Hero
+# from app.blog.models import 
 
 @pytest.mark.asyncio
-async def test_create_hero(
+async def test_create_user(
         async_client: AsyncClient,
         async_session: AsyncSession,
         test_data: dict
 ):
     payload = test_data["case_create"]["payload"]
-    response = await async_client.post("/heroes", json=payload,)
+    response = await async_client.post("/users", json=payload,)
 
     assert response.status_code == 201
 
@@ -22,7 +22,7 @@ async def test_create_hero(
     for k, v in want.items():
         assert got[k] == v
 
-    statement = select(Hero).where(Hero.uuid == got["uuid"])
+    statement = select().where(Hero.uuid == got["uuid"])
     results = await async_session.exec(statement=statement)
     hero = results.scalar_one()
 

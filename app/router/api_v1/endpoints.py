@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.heroes.api import router as blog_router
+from app.blog.api import router as blog_router
 
 api_router = APIRouter()
 

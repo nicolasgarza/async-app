@@ -29,7 +29,7 @@ async def async_client():
         yield client
 
 @pytest_asyncio.fixture(scope="function")
-async def async_session() -> AsyncSession:
+async def async_session() -> AsyncSession: # type: ignore
     session = sessionmaker(
         async_engine, class_=AsyncSession, expire_on_commit=False
     )

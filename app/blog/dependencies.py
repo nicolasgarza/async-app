@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
-from app.heroes.crud import BlogCRUD
+from app.blog.crud import BlogCRUD
 
 async def get_blog_crud(
         session: AsyncSession = Depends(get_async_session)

@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, text
 from pydantic import BaseModel
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from uuid import UUID, uuid4
 
 class HealthCheck(BaseModel):
     name: str
@@ -12,6 +13,29 @@ class HealthCheck(BaseModel):
 class StatusMessage(BaseModel):
     status: bool
     message: str
+
+class UUIDModel(SQLModel):
+    uuid: UUID = Field(default_factory=uuid4,
+                       primary_key=True,
+                       index=True,
+                       nullable=False,
+                       sa_column_kwargs={
+                           "server_default": text("gen_random_uuid()"),
+                           "unique": True
+                       })
+
+class TimestampModel(SQLModel):
+    created_at: datetime.datetime = Field(default_factory=datetime.datetime.utcnow,
+                                          nullable=False,
+                                          sa_column_kwargs={
+                                              "server_default": text("current_timestamp(0)")
+                                          })
+    updated_at: datetime.datetime = Field(default_factory=datetime.datetime.utcnow,
+                                          nullable=False,
+                                          sa_column_kwargs={
+                                              "server_default": text("current_timestamp(0)"),
+                                              "onupdate": text("current_timestamp(0)")
+                                          })
 
 class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, max_length=255)

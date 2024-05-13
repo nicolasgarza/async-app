@@ -3,8 +3,9 @@ from fastapi import HTTPException
 from fastapi import status as http_status
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+import bcrypt
 
-from app.heroes.models import UserBase, UserCreate, UserUpdate, PostBase, PostCreate, CommentBase, CommentCreate
+from app.blog.models import UserBase, UserCreate, UserUpdate, PostBase, PostCreate, CommentBase, CommentCreate
 from app.core.models import User, Post, Comment
 
 class BlogCRUD:
@@ -13,10 +14,12 @@ class BlogCRUD:
 
     # User endpoints
     async def create_user(self, data: UserCreate) -> UserBase:
+        hashed_password = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt())
+
         user = User(
             username=data.username,
             email=data.email,
-            hashed_password=data.password
+            hashed_password=hashed_password.decode('utf-8') 
         )
         self.session.add(user)
         await self.session.commit()
@@ -43,7 +46,7 @@ class BlogCRUD:
                 status_code=http_status.HTTP_404_NOT_FOUND,
                 detail="User not found!"
             )
-        update_data = data.dict(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(user, key, value)
 
@@ -86,7 +89,7 @@ class BlogCRUD:
                 status_code=http_status.HTTP_404_NOT_FOUND,
                 detail="Post not found!"
             )
-        update_data = data.dict(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(post, key, value)
 
@@ -130,7 +133,7 @@ class BlogCRUD:
                 detail="Comment not found!"
             )
         
-        update_data = data.dict(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(comment, key, value)
 
