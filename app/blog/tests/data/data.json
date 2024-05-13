@@ -1,19 +1,13 @@
 {
-    "initial_data": {
-      "hero": {
-        "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        "nickname": "TheLastManStands",
-        "role": "mage"
-      }
-    },
     "case_create": {
       "payload": {
-        "nickname": "TheLastManStands",
-        "role": "mage"
+          "username": "john_doe",
+          "email": "john.doe@example.com",
+          "password": "securePassword123"
       },
       "want": {
-        "nickname": "TheLastManStands",
-        "role": "mage"
+          "username": "john_doe",
+          "email": "john.doe@example.com"
       }
     },
     "case_get": {
