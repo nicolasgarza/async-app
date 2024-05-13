@@ -3,7 +3,8 @@ from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.heroes.crud import BlogCRUD
 from app.heroes.dependencies import get_blog_crud
-from app.heroes.models import UserCreate, UserRead, UserUpdate, StatusMessage, PostCreate, PostRead, CommentCreate, CommentRead
+from app.heroes.models import UserCreate, UserRead, UserUpdate, PostCreate, PostRead, CommentCreate, CommentRead
+from app.core.models import StatusMessage
 
 router = APIRouter()
 

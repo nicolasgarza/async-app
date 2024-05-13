@@ -1,7 +1,17 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
+from pydantic import BaseModel
 from sqlalchemy.orm import relationship
 from datetime import datetime
+
+class HealthCheck(BaseModel):
+    name: str
+    version: str
+    description: str
+
+class StatusMessage(BaseModel):
+    status: bool
+    message: str
 
 class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, max_length=255)
@@ -11,7 +21,7 @@ class User(UserBase, table=True):
     __tablename__ = 'users'
     id: int = Field(default=None, primary_key=True)
     hashed_password: str = Field(nullable=False)
-    # Define relationships using Relationship
+    # Relationships
     posts: list["Post"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     comments: list["Comment"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 

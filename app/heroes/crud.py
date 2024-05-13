@@ -1,24 +1,29 @@
 from uuid import UUID
 from fastapi import HTTPException
-from fastapi import status, http_status
+from fastapi import status as http_status
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.heroes.models import User, UserCreate, UserUpdate, Post, PostCreate, Comment, CommentCreate
+from app.heroes.models import UserBase, UserCreate, UserUpdate, PostBase, PostCreate, CommentBase, CommentCreate
+from app.core.models import User, Post, Comment
 
 class BlogCRUD:
     def __init__(self, session: AsyncSession):
         self.session = session
 
     # User endpoints
-    async def create_user(self, data: UserCreate) -> User:
-        user = User(username=data.username, email=data.email, password=data.password)
+    async def create_user(self, data: UserCreate) -> UserBase:
+        user = User(
+            username=data.username,
+            email=data.email,
+            hashed_password=data.password
+        )
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
         return user
     
-    async def get_user(self, user_id: int) -> User:
+    async def get_user(self, user_id: int) -> UserBase:
         statement = select(User).where(User.id == user_id)
         result = await self.session.execute(statement)
         user = result.scalar_one_or_none()
@@ -29,7 +34,7 @@ class BlogCRUD:
             )
         return user
     
-    async def update_user(self, user_id: int, data: UserUpdate) -> User:
+    async def update_user(self, user_id: int, data: UserUpdate) -> UserBase:
         statement = select(User).where(User.id == user_id)
         result = await self.session.execute(statement)
         user = result.scalar_one_or_none()
@@ -54,14 +59,14 @@ class BlogCRUD:
         return True
     
     # Post endpoints
-    async def create_post(self, data: PostCreate, author_id: int) -> Post:
+    async def create_post(self, data: PostCreate, author_id: int) -> PostBase:
         post = Post(title=data.title, content=data.content, author_id=author_id)
         self.session.add(post)
         await self.session.commit()
         await self.session.refresh(post)
         return post
     
-    async def get_post(self, post_id: int) -> Post:
+    async def get_post(self, post_id: int) -> PostBase:
         statement = select(Post).where(Post.id == post_id)
         result = await self.session.execute(statement)
         post = result.scalar_one_or_none()
@@ -72,7 +77,7 @@ class BlogCRUD:
             )
         return post
     
-    async def update_post(self, post_id: int, data: PostCreate) -> Post:
+    async def update_post(self, post_id: int, data: PostCreate) -> PostBase:
         statement = select(Post).where(Post.id == post_id)
         result = await self.session.execute(statement)
         post = result.scalar_one_or_none()
@@ -97,14 +102,14 @@ class BlogCRUD:
         return True
     
     # Comment endpoints
-    async def create_comment(self, data: CommentCreate, author_id: int) -> Comment:
+    async def create_comment(self, data: CommentCreate, author_id: int) -> CommentBase:
         comment = Comment(content=data.content, post_id=data.post_id, author_id=author_id)
         self.session.add(comment)
         await self.session.commit()
         await self.session.refresh(comment)
         return comment
 
-    async def get_comment(self, comment_id: int) -> Comment:
+    async def get_comment(self, comment_id: int) -> CommentBase:
         statement = select(Comment).where(Comment.id == comment_id)
         result = await self.session.execute(statement)
         comment = result.scalar_one_or_none()
@@ -115,7 +120,7 @@ class BlogCRUD:
             )
         return comment
     
-    async def update_comment(self, comment_id: int, data: CommentCreate) -> Comment:
+    async def update_comment(self, comment_id: int, data: CommentCreate) -> CommentBase:
         statement = select(Comment).where(Comment.id == comment_id)
         result = await self.session.execute(statement)
         comment = result.scalar_one_or_none()
