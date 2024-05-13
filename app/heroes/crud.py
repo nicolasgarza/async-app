@@ -1,65 +1,141 @@
 from uuid import UUID
-
 from fastapi import HTTPException
-from fastapi import status as http_status
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio.session import AsyncSession
+from fastapi import status, http_status
+from sqlalchemy import delete, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.heroes.models import Hero, HeroCreate, HeroPatch
+from app.heroes.models import User, UserCreate, UserUpdate, Post, PostCreate, Comment, CommentCreate
 
-class HeroesCRUD:
+class BlogCRUD:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, data: HeroCreate) -> Hero:
-        values = data.model_dump()
-
-        hero = Hero(**values)
-        self.session.add(hero)
+    # User endpoints
+    async def create_user(self, data: UserCreate) -> User:
+        user = User(username=data.username, email=data.email, password=data.password)
+        self.session.add(user)
         await self.session.commit()
-        await self.session.refresh(hero)
-
-        return hero
-
-    async def get(self, hero_id: str | UUID) -> Hero:
-        statement = select(
-            Hero
-        ).where(
-            Hero.uuid == hero_id
-        )
-        results = await self.session.exec(statement=statement)
-        hero = results.scalar_one_or_none()  # type: Hero | None
-
-        if hero is None:
+        await self.session.refresh(user)
+        return user
+    
+    async def get_user(self, user_id: int) -> User:
+        statement = select(User).where(User.id == user_id)
+        result = await self.session.execute(statement)
+        user = result.scalar_one_or_none()
+        if user is None:
             raise HTTPException(
                 status_code=http_status.HTTP_404_NOT_FOUND,
-                detail="The hero hasn't been found!"
+                detail="User not found!"
             )
+        return user
+    
+    async def update_user(self, user_id: int, data: UserUpdate) -> User:
+        statement = select(User).where(User.id == user_id)
+        result = await self.session.execute(statement)
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="User not found!"
+            )
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(user, key, value)
 
-        return hero
-
-
-    async def patch(self, hero_id: str | UUID, data: HeroPatch) -> Hero:
-        hero = await self.get(hero_id=hero_id)
-        values = data.model_dump(exclude_unset=True)
-
-        for k, v in values.items():
-            setattr(hero, k, v)
-
-        self.session.add(hero)
+        self.session.add(user)
         await self.session.commit()
-        await self.session.refresh(hero)
-
-        return hero
-
-    async def delete(self, hero_id: str | UUID) -> bool:
-        statement = delete(
-            Hero
-        ).where(
-            Hero.uuid == hero_id
-        )
-
-        await self.session.exec(statement=statement)
+        await self.session.refresh(user)
+        return user
+    
+    async def delete_user(self, user_id: int) -> bool:
+        statement = delete(User).where(User.id == user_id)
+        await self.session.execute(statement)
         await self.session.commit()
+        return True
+    
+    # Post endpoints
+    async def create_post(self, data: PostCreate, author_id: int) -> Post:
+        post = Post(title=data.title, content=data.content, author_id=author_id)
+        self.session.add(post)
+        await self.session.commit()
+        await self.session.refresh(post)
+        return post
+    
+    async def get_post(self, post_id: int) -> Post:
+        statement = select(Post).where(Post.id == post_id)
+        result = await self.session.execute(statement)
+        post = result.scalar_one_or_none()
+        if post is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="Post not found!"
+            )
+        return post
+    
+    async def update_post(self, post_id: int, data: PostCreate) -> Post:
+        statement = select(Post).where(Post.id == post_id)
+        result = await self.session.execute(statement)
+        post = result.scalar_one_or_none()
+        if post is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="Post not found!"
+            )
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(post, key, value)
 
+        self.session.add(post)
+        await self.session.commit()
+        await self.session.refresh(post)
+        return post
+    
+    async def delete_post(self, post_id: int) -> bool:
+        statement = delete(Post).where(Post.id == post_id)
+        await self.session.execute(statement)
+        await self.session.commit()
+        return True
+    
+    # Comment endpoints
+    async def create_comment(self, data: CommentCreate, author_id: int) -> Comment:
+        comment = Comment(content=data.content, post_id=data.post_id, author_id=author_id)
+        self.session.add(comment)
+        await self.session.commit()
+        await self.session.refresh(comment)
+        return comment
+
+    async def get_comment(self, comment_id: int) -> Comment:
+        statement = select(Comment).where(Comment.id == comment_id)
+        result = await self.session.execute(statement)
+        comment = result.scalar_one_or_none()
+        if comment is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="Comment not found!"
+            )
+        return comment
+    
+    async def update_comment(self, comment_id: int, data: CommentCreate) -> Comment:
+        statement = select(Comment).where(Comment.id == comment_id)
+        result = await self.session.execute(statement)
+        comment = result.scalar_one_or_none()
+        if comment is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="Comment not found!"
+            )
+        
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(comment, key, value)
+
+        self.session.add(comment)
+        await self.session.commit()
+        await self.session.refresh(comment)
+        return comment
+    
+    async def delete_comment(self, comment_id: int) -> bool:
+        statement = delete(Comment).where(Comment.id == comment_id)
+        await self.session.execute(statement)
+        await self.session.commit()
         return True

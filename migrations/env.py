@@ -8,6 +8,8 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import SQLModel
 
+from app.core.models import User, Post, Comment
+
 config = context.config
 
 if config.config_file_name is not None:
@@ -24,7 +26,6 @@ target_metadata.naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
-from app.heroes.models import Hero  # noqa: 'autogenerate' support
 
 exclude_tables = loads(os.getenv("DB_EXCLUDE_TABLES"))
 
