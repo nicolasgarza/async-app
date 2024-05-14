@@ -26,8 +26,8 @@ class BlogCRUD:
         await self.session.refresh(user)
         return user
     
-    async def get_user(self, user_id: int) -> UserBase:
-        statement = select(User).where(User.id == user_id)
+    async def get_user(self, user_uuid: str) -> UserBase:
+        statement = select(User).where(User.uuid == user_uuid)
         result = await self.session.execute(statement)
         user = result.scalar_one_or_none()
         if user is None:
@@ -37,8 +37,8 @@ class BlogCRUD:
             )
         return user
     
-    async def update_user(self, user_id: int, data: UserUpdate) -> UserBase:
-        statement = select(User).where(User.id == user_id)
+    async def update_user(self, user_uuid: str, data: UserUpdate) -> UserBase:
+        statement = select(User).where(User.uuid == user_uuid)
         result = await self.session.execute(statement)
         user = result.scalar_one_or_none()
         if user is None:
@@ -55,22 +55,22 @@ class BlogCRUD:
         await self.session.refresh(user)
         return user
     
-    async def delete_user(self, user_id: int) -> bool:
-        statement = delete(User).where(User.id == user_id)
+    async def delete_user(self, user_uuid: str) -> bool:
+        statement = delete(User).where(User.uuid == user_uuid)
         await self.session.execute(statement)
         await self.session.commit()
         return True
     
     # Post endpoints
-    async def create_post(self, data: PostCreate, author_id: int) -> PostBase:
-        post = Post(title=data.title, content=data.content, author_id=author_id)
+    async def create_post(self, data: PostCreate, author_uuid: str) -> PostBase:
+        post = Post(title=data.title, content=data.content, author_uuid=author_uuid)
         self.session.add(post)
         await self.session.commit()
         await self.session.refresh(post)
         return post
     
-    async def get_post(self, post_id: int) -> PostBase:
-        statement = select(Post).where(Post.id == post_id)
+    async def get_post(self, post_uuid: str) -> PostBase:
+        statement = select(Post).where(Post.uuid == post_uuid)
         result = await self.session.execute(statement)
         post = result.scalar_one_or_none()
         if post is None:
@@ -80,8 +80,8 @@ class BlogCRUD:
             )
         return post
     
-    async def update_post(self, post_id: int, data: PostCreate) -> PostBase:
-        statement = select(Post).where(Post.id == post_id)
+    async def update_post(self, post_uuid: str, data: PostCreate) -> PostBase:
+        statement = select(Post).where(Post.uuid == post_uuid)
         result = await self.session.execute(statement)
         post = result.scalar_one_or_none()
         if post is None:
@@ -98,22 +98,22 @@ class BlogCRUD:
         await self.session.refresh(post)
         return post
     
-    async def delete_post(self, post_id: int) -> bool:
-        statement = delete(Post).where(Post.id == post_id)
+    async def delete_post(self, post_uuid: str) -> bool:
+        statement = delete(Post).where(Post.uuid == post_uuid)
         await self.session.execute(statement)
         await self.session.commit()
         return True
     
     # Comment endpoints
-    async def create_comment(self, data: CommentCreate, author_id: int) -> CommentBase:
-        comment = Comment(content=data.content, post_id=data.post_id, author_id=author_id)
+    async def create_comment(self, data: CommentCreate, author_uuid: str) -> CommentBase:
+        comment = Comment(content=data.content, post_id=data.post_id, author_uuid=author_uuid)
         self.session.add(comment)
         await self.session.commit()
         await self.session.refresh(comment)
         return comment
 
-    async def get_comment(self, comment_id: int) -> CommentBase:
-        statement = select(Comment).where(Comment.id == comment_id)
+    async def get_comment(self, comment_uuid: str) -> CommentBase:
+        statement = select(Comment).where(Comment.id == comment_uuid)
         result = await self.session.execute(statement)
         comment = result.scalar_one_or_none()
         if comment is None:
@@ -123,8 +123,8 @@ class BlogCRUD:
             )
         return comment
     
-    async def update_comment(self, comment_id: int, data: CommentCreate) -> CommentBase:
-        statement = select(Comment).where(Comment.id == comment_id)
+    async def update_comment(self, comment_uuid: str, data: CommentCreate) -> CommentBase:
+        statement = select(Comment).where(Comment.uuid == comment_uuid)
         result = await self.session.execute(statement)
         comment = result.scalar_one_or_none()
         if comment is None:
@@ -142,8 +142,8 @@ class BlogCRUD:
         await self.session.refresh(comment)
         return comment
     
-    async def delete_comment(self, comment_id: int) -> bool:
-        statement = delete(Comment).where(Comment.id == comment_id)
+    async def delete_comment(self, comment_uuid: str) -> bool:
+        statement = delete(Comment).where(Comment.uuid == comment_uuid)
         await self.session.execute(statement)
         await self.session.commit()
         return True

@@ -6,12 +6,12 @@ from uuid import UUID
 
 from app.core.models import UUIDModel, TimestampModel
 
-class UserBase(UUIDModel, TimestampModel):
+class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, max_length=255)
     email: EmailStr
 
-class UserRead(UserBase):
-    pass  
+class UserRead(UserBase, UUIDModel):
+    pass
 
 class UserCreate(UserBase):
     password: str
@@ -21,23 +21,23 @@ class UserUpdate(SQLModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
 
-class PostBase(UUIDModel, TimestampModel):
+class PostBase(SQLModel):
     title: str = Field(nullable=False, max_length=255)
     content: str = Field(nullable=False, max_length=2048)
     author_id: UUID = Field(foreign_key="user.uuid")
 
-class PostRead(PostBase):
+class PostRead(PostBase, UUIDModel, TimestampModel):
     pass
 
 class PostCreate(PostBase):
     pass  
 
-class CommentBase(UUIDModel, TimestampModel):
+class CommentBase(SQLModel):
     content: str = Field(nullable=False, max_length=1024)
     author_id: UUID = Field(foreign_key="user.uuid")
     post_id: UUID = Field(foreign_key="post.uuid")
 
-class CommentRead(CommentBase):
+class CommentRead(CommentBase, UUIDModel, TimestampModel):
     pass
 
 class CommentCreate(CommentBase):

@@ -22,42 +22,42 @@ async def create_user(
     return user
 
 @router.get(
-    "/users/{user_id}",
+    "/users/{user_uuid}",
     response_model=UserRead,
     status_code=http_status.HTTP_200_OK
 )
 async def get_user_by_id(
-    user_id: int, 
+    user_uuid: str, 
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    user = await crud.get_user(user_id=user_id)
+    user = await crud.get_user(user_uuid=user_uuid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.patch(
-    "/users/{user_id}",
+    "/users/{user_uuid}",
     response_model=UserRead,
     status_code=http_status.HTTP_200_OK
 )
 async def update_user_by_id(
-    user_id: int, 
+    user_uuid: str, 
     data: UserUpdate, 
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    user = await crud.update_user(user_id=user_id, data=data)
+    user = await crud.update_user(user_uuid=user_uuid, data=data)
     return user
 
 @router.delete(
-    "/users/{user_id}",
+    "/users/{user_uuid}",
     response_model=StatusMessage,
     status_code=http_status.HTTP_200_OK
 )
 async def delete_user_by_id(
-    user_id: int,
+    user_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_user(user_id=user_id)
+    await crud.delete_user(user_id=user_uuid)
     return {"status": True, "message": "User has been deleted"}
 
 # Post endpoints
@@ -68,37 +68,37 @@ async def delete_user_by_id(
 )
 async def create_post(
     data: PostCreate,
-    author_id: int, 
+    author_uuid: str, 
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    post = await crud.create_post(data=data, author_id=author_id)
+    post = await crud.create_post(data=data, author_uuid=author_uuid)
     return post
 
 @router.get(
-    "/posts/{post_id}",
+    "/posts/{post_uuid}",
     response_model=PostRead,
     status_code=http_status.HTTP_200_OK
 )
 async def get_post_by_id(
-    post_id: int,
+    post_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    post = await crud.get_post(post_id=post_id)
+    post = await crud.get_post(post_uuid=post_uuid)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
 
 @router.patch(
-    "/posts/{post_id}",
+    "/posts/{post_uuid}",
     response_model=PostRead,
     status_code=http_status.HTTP_200_OK
 )
 async def update_post_by_id(
-    post_id: int,
+    post_uuid: str,
     data: PostCreate,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    post = await crud.update_post(post_id=post_id, data=data)
+    post = await crud.update_post(post_uuid=post_uuid, data=data)
     return post
 
 @router.delete(
@@ -107,10 +107,10 @@ async def update_post_by_id(
     status_code=http_status.HTTP_200_OK
 )
 async def delete_post_by_id(
-    post_id: int,
+    post_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_post(post_id=post_id)
+    await crud.delete_post(post_uuid=post_uuid)
     return {"status": True, "message": "Post has been deleted"}
 
 # Comment endpoints
@@ -121,47 +121,47 @@ async def delete_post_by_id(
 )
 async def create_comment(
     data: CommentCreate,
-    author_id: int,
+    author_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    comment = await crud.create_comment(data=data, author_id=author_id)
+    comment = await crud.create_comment(data=data, author_uuid=author_uuid)
     return comment
 
 @router.get(
-    "/comments/{comment_id}",
+    "/comments/{comment_uuid}",
     response_model=CommentRead,
     status_code=http_status.HTTP_200_OK
 )
 async def get_comment_by_id(
-    comment_id: int,
+    comment_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    comment = await crud.get_comment(comment_id=comment_id)
+    comment = await crud.get_comment(comment_uuid=comment_uuid)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     return comment
 
 @router.patch(
-    "/comments/{comment_id}",
+    "/comments/{comment_uuid}",
     response_model=CommentRead,
     status_code=http_status.HTTP_200_OK
 )
 async def update_comment_by_id(
-    comment_id: int,
+    comment_uuid: str,
     data: CommentCreate,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    comment = await crud.update_comment(comment_id=comment_id, data=data)
+    comment = await crud.update_comment(comment_uuid=comment_uuid, data=data)
     return comment
 
 @router.delete(
-    "/comments/{comment_id}",
+    "/comments/{comment_uuid}",
     response_model=StatusMessage,
     status_code=http_status.HTTP_200_OK
 )
 async def delete_comment_by_id(
-    comment_id: int,
+    comment_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_comment(comment_id=comment_id)
+    await crud.delete_comment(comment_uuid=comment_uuid)
     return {"status": True, "message": "Comment has been deleted"}
