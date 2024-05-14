@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import text
+from sqlalchemy import text, ForeignKey
 from datetime import datetime
 from pydantic import BaseModel
 from uuid import UUID, uuid4
@@ -45,7 +45,7 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, nullable=False, max_length=255)
     hashed_password: str = Field(nullable=False)
     # Relationships
-    posts: list["Post"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    posts: List["Post"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     comments: List["Comment"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 class Post(SQLModel, table=True):
@@ -55,10 +55,12 @@ class Post(SQLModel, table=True):
     title: str = Field(nullable=False)
     content: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    author_uuid: UUID = Field(foreign_key="users.uuid")
+    author_uuid: UUID = Field(foreign_key="users.uuid", sa_column_kwargs={
+        "foreign_key": ForeignKey("users.uuid", ondelete="CASCADE")
+    })
     # Relationships
     author: User = Relationship(back_populates="posts")
-    comments: list["Comment"] = Relationship(back_populates="post")
+    comments: List["Comment"] = Relationship(back_populates="post", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 class Comment(SQLModel, table=True):
     __tablename__ = 'comments'
@@ -67,7 +69,9 @@ class Comment(SQLModel, table=True):
     content: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     author_uuid: UUID = Field(foreign_key="users.uuid")
-    post_uuid: UUID = Field(foreign_key="posts.uuid")
+    post_uuid: UUID = Field(foreign_key="posts.uuid", sa_column_kwargs={
+        "foreign_key": ForeignKey("posts.uuid", ondelete="CASCADE")
+    })
     # Relationships
     author: User = Relationship(back_populates="comments")
     post: Post = Relationship(back_populates="comments")
