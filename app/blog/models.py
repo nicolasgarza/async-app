@@ -24,13 +24,14 @@ class UserUpdate(SQLModel):
 class PostBase(SQLModel):
     title: str = Field(nullable=False, max_length=255)
     content: str = Field(nullable=False, max_length=2048)
-    author_id: UUID = Field(foreign_key="user.uuid")
+    author_uuid: UUID = Field(foreign_key="user.uuid")
 
 class PostRead(PostBase, UUIDModel, TimestampModel):
     pass
 
-class PostCreate(PostBase):
-    pass  
+class PostCreate(SQLModel):
+    title: str = Field(nullable=False, max_length=255)
+    content: str = Field(nullable=False, max_length=2048)
 
 class CommentBase(SQLModel):
     content: str = Field(nullable=False, max_length=1024)

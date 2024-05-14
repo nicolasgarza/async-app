@@ -1,10 +1,36 @@
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.blog.models import UserCreate
-from app.core.models import User
+from app.core.models import User, Post
+
+# fixtures
+
+@pytest.fixture
+async def test_user(async_session: AsyncSession):
+    user_data = {
+        "username": "test_user",
+        "email": "test@example.com",
+        "hashed_password": "fakehashedpassword"
+    }
+    user_stmt = insert(User).values(user_data)
+    result = await async_session.execute(user_stmt)
+    await async_session.commit()
+    user_uuid = result.inserted_primary_key[0]
+    
+    yield user_uuid
+
+    # Delete all posts for the user first
+    await async_session.execute(delete(Post).where(Post.author_uuid == user_uuid))
+    await async_session.commit()
+
+    # Now delete the user
+    await async_session.execute(delete(User).where(User.uuid == user_uuid))
+    await async_session.commit()
+
+
+# tests
 
 @pytest.mark.asyncio
 async def test_create_user(
@@ -110,3 +136,65 @@ async def test_delete_user(
     user = results.scalar_one_or_none()
 
     assert user is None
+
+@pytest.mark.asyncio
+async def test_create_post(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_user):
+    payload = test_data["post_case_create"]["payload"]
+    response = await async_client.post(f"/posts?author_uuid={test_user}", json=payload)
+    
+    assert response.status_code == 201
+    got = response.json()
+    want = test_data["post_case_create"]["want"]
+    
+    for k, v in want.items():
+        assert got[k] == v
+
+    assert 'uuid' in got
+
+    # Check post was inserted into the database
+    statement = select(Post).where(Post.uuid == got["uuid"])
+    results = await async_session.exec(statement=statement)
+    post = results.scalar_one()
+    
+    for k, v in want.items():
+        assert getattr(post, k) == v
+
+# @pytest.mark.asyncio
+# async def test_get_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+#     response = await async_client.get(f"/posts/{test_post}")
+    
+#     assert response.status_code == 200
+#     got = response.json()
+#     want = test_data["post_case_get"]["want"]
+    
+#     for k, v in want.items():
+#         assert got[k] == v
+
+# @pytest.mark.asyncio
+# async def test_update_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+#     payload = test_data["post_case_patch"]["payload"]
+#     response = await async_client.patch(f"/posts/{test_post}", json=payload)
+    
+#     assert response.status_code == 200
+#     got = response.json()
+#     want = test_data["post_case_patch"]["want"]
+    
+#     for k, v in want.items():
+#         assert got[k] == v
+
+# @pytest.mark.asyncio
+# async def test_delete_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+#     response = await async_client.delete(f"/posts/{test_post}")
+    
+#     assert response.status_code == 200
+#     got = response.json()
+#     want = test_data["post_case_delete"]["want"]
+    
+#     assert got == want
+    
+#     # Check post was deleted from the database
+#     statement = select(Post).where(Post.uuid == test_post)
+#     results = await async_session.exec(statement)
+#     post = results.scalar_one_or_none()
+    
+#     assert post is None

@@ -29,5 +29,38 @@
       "status": true,
       "message": "User has been deleted!"
     }
+  },
+  "user_uuid": "example-uuid-for-user",
+  "post_uuid": "example-uuid-for-post",
+  "post_case_create": {
+    "payload": {
+      "title": "New Post",
+      "content": "Content of the new post."
+    },
+    "want": {
+      "title": "New Post",
+      "content": "Content of the new post."
+    }
+  },
+  "post_case_get": {
+    "want": {
+      "title": "New Post",
+      "content": "Content of the new post."
+    }
+  },
+  "post_case_patch": {
+    "payload": {
+      "title": "Updated Title"
+    },
+    "want": {
+      "title": "Updated Title",
+      "content": "Content of the new post."
+    }
+  },
+  "post_case_delete": {
+    "want": {
+      "status": true,
+      "message": "Post has been deleted!"
+    }
   }
 }
