@@ -57,8 +57,8 @@ async def delete_user_by_id(
     user_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_user(user_id=user_uuid)
-    return {"status": True, "message": "User has been deleted"}
+    await crud.delete_user(user_uuid=user_uuid)
+    return {"status": True, "message": "User has been deleted!"}
 
 # Post endpoints
 @router.post(

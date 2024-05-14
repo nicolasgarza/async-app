@@ -38,10 +38,10 @@ async def test_get_user(
     async_session: AsyncSession,
     test_data: dict
 ):
-    testing_data = test_data["case_create"]["payload"]
+    testing_data = test_data["case_create"]["payload"].copy()
     del testing_data["password"]
     testing_data["hashed_password"] = "securePassword123"
-    user_data = test_data["case_create"]["payload"]
+    user_data = testing_data
     statement = insert(User).values(user_data)
     result = await async_session.exec(statement)
     await async_session.commit()
@@ -56,51 +56,57 @@ async def test_get_user(
     for k, v in want.items():
         assert got[k] == v
 
-# @pytest.mark.asyncio
-# async def test_update_user(
-#     async_client: AsyncClient,
-#     async_session: AsyncSession,
-#     test_data: dict
-# ):
-#     user_data = test_data["case_create"]["want"]
-#     statement = insert(User).values(user_data)
-#     result = await async_session.exec(statement)
-#     await async_session.commit()
-#     user_id = result.inserted_primary_key[0]
+@pytest.mark.asyncio
+async def test_update_user(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    test_data: dict
+):
+    testing_data = test_data["case_create"]["payload"].copy()
+    del testing_data["password"]
+    testing_data["hashed_password"] = "securePassword123"
+    user_data = testing_data
+    statement = insert(User).values(user_data)
+    result = await async_session.exec(statement)
+    await async_session.commit()
+    user_id = result.inserted_primary_key[0]
 
-#     payload = test_data["case_patch"]["payload"]
-#     response = await async_client.patch(f"/users/{user_id}", json=payload)
-#     assert response.status_code == 200
+    payload = test_data["case_patch"]["payload"]
+    response = await async_client.patch(f"/users/{user_id}", json=payload)
+    assert response.status_code == 200
 
-#     got = response.json()
-#     want = test_data["case_patch"]["want"]
+    got = response.json()
+    want = test_data["case_patch"]["want"]
 
-#     for k, v in want.items():
-#         assert got[k] == v
+    for k, v in want.items():
+        assert got[k] == v
 
-# @pytest.mark.asyncio
-# async def test_delete_user(
-#     async_client: AsyncClient,
-#     async_session: AsyncSession,
-#     test_data: dict
-# ):
-#     user_data = test_data["case_create"]["want"]
-#     statement = insert(User).values(user_data)
-#     result = await async_session.exec(statement)
-#     await async_session.commit()
-#     user_id = result.inserted_primary_key[0]
+@pytest.mark.asyncio
+async def test_delete_user(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    test_data: dict
+):
+    testing_data = test_data["case_create"]["payload"].copy()
+    del testing_data["password"]
+    testing_data["hashed_password"] = "securePassword123"
+    user_data = testing_data
+    statement = insert(User).values(user_data)
+    result = await async_session.exec(statement)
+    await async_session.commit()
+    user_uuid = result.inserted_primary_key[0]
 
-#     response = await async_client.delete(f"/users/{user_id}")
-#     assert response.status_code == 200
+    response = await async_client.delete(f"/users/{user_uuid}")
+    assert response.status_code == 200
 
-#     got = response.json()
-#     want = test_data["case_delete"]["want"]
+    got = response.json()
+    want = test_data["case_delete"]["want"]
 
-#     for k, v in want.items():
-#         assert got[k] == v
+    for k, v in want.items():
+        assert got[k] == v
 
-#     statement = select(User).where(User.id == user_id)
-#     results = await async_session.exec(statement)
-#     user = results.scalar_one_or_none()
+    statement = select(User).where(User.uuid == user_uuid)
+    results = await async_session.exec(statement)
+    user = results.scalar_one_or_none()
 
-#     assert user is None
+    assert user is None
