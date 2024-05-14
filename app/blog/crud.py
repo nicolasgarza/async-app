@@ -5,7 +5,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 import bcrypt
 
-from app.blog.models import UserBase, UserCreate, UserUpdate, PostBase, PostCreate, CommentBase, CommentCreate
+from app.blog.models import UserBase, UserCreate, UserUpdate, PostBase, PostCreate, PostUpdate, CommentBase, CommentCreate
 from app.core.models import User, Post, Comment
 
 class BlogCRUD:
@@ -28,7 +28,7 @@ class BlogCRUD:
     
     async def get_user(self, user_uuid: str) -> UserBase:
         statement = select(User).where(User.uuid == user_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         user = result.scalar_one_or_none()
         if user is None:
             raise HTTPException(
@@ -39,7 +39,7 @@ class BlogCRUD:
     
     async def update_user(self, user_uuid: str, data: UserUpdate) -> UserBase:
         statement = select(User).where(User.uuid == user_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         user = result.scalar_one_or_none()
         if user is None:
             raise HTTPException(
@@ -57,9 +57,10 @@ class BlogCRUD:
     
     async def delete_user(self, user_uuid: str) -> bool:
         statement = delete(User).where(User.uuid == user_uuid)
-        await self.session.execute(statement)
-        await self.session.commit()
-        return True
+        if await self.session.exec(statement):
+            await self.session.commit()
+            return True
+        return False
     
     # Post endpoints
     async def create_post(self, data: PostCreate, author_uuid: str) -> PostBase:
@@ -71,7 +72,7 @@ class BlogCRUD:
     
     async def get_post(self, post_uuid: str) -> PostBase:
         statement = select(Post).where(Post.uuid == post_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         post = result.scalar_one_or_none()
         if post is None:
             raise HTTPException(
@@ -80,9 +81,9 @@ class BlogCRUD:
             )
         return post
     
-    async def update_post(self, post_uuid: str, data: PostCreate) -> PostBase:
+    async def update_post(self, post_uuid: str, data: PostUpdate) -> PostBase:
         statement = select(Post).where(Post.uuid == post_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         post = result.scalar_one_or_none()
         if post is None:
             raise HTTPException(
@@ -100,9 +101,9 @@ class BlogCRUD:
     
     async def delete_post(self, post_uuid: str) -> bool:
         statement = delete(Post).where(Post.uuid == post_uuid)
-        await self.session.execute(statement)
+        result = await self.session.exec(statement)
         await self.session.commit()
-        return True
+        return result.rowcount > 0
     
     # Comment endpoints
     async def create_comment(self, data: CommentCreate, author_uuid: str) -> CommentBase:
@@ -114,7 +115,7 @@ class BlogCRUD:
 
     async def get_comment(self, comment_uuid: str) -> CommentBase:
         statement = select(Comment).where(Comment.id == comment_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         comment = result.scalar_one_or_none()
         if comment is None:
             raise HTTPException(
@@ -125,7 +126,7 @@ class BlogCRUD:
     
     async def update_comment(self, comment_uuid: str, data: CommentCreate) -> CommentBase:
         statement = select(Comment).where(Comment.uuid == comment_uuid)
-        result = await self.session.execute(statement)
+        result = await self.session.exec(statement)
         comment = result.scalar_one_or_none()
         if comment is None:
             raise HTTPException(
@@ -144,6 +145,6 @@ class BlogCRUD:
     
     async def delete_comment(self, comment_uuid: str) -> bool:
         statement = delete(Comment).where(Comment.uuid == comment_uuid)
-        await self.session.execute(statement)
+        await self.session.exec(statement)
         await self.session.commit()
         return True

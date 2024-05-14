@@ -33,6 +33,10 @@ class PostCreate(SQLModel):
     title: str = Field(nullable=False, max_length=255)
     content: str = Field(nullable=False, max_length=2048)
 
+class PostUpdate(SQLModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+
 class CommentBase(SQLModel):
     content: str = Field(nullable=False, max_length=1024)
     author_id: UUID = Field(foreign_key="user.uuid")

@@ -44,8 +44,8 @@
   },
   "post_case_get": {
     "want": {
-      "title": "New Post",
-      "content": "Content of the new post."
+      "title": "Test Post",
+      "content": "This is a test post"
     }
   },
   "post_case_patch": {
@@ -54,7 +54,7 @@
     },
     "want": {
       "title": "Updated Title",
-      "content": "Content of the new post."
+      "content": "This is a test post"
     }
   },
   "post_case_delete": {

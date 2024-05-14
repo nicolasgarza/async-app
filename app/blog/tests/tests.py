@@ -15,20 +15,34 @@ async def test_user(async_session: AsyncSession):
         "hashed_password": "fakehashedpassword"
     }
     user_stmt = insert(User).values(user_data)
-    result = await async_session.execute(user_stmt)
+    result = await async_session.exec(user_stmt)
     await async_session.commit()
     user_uuid = result.inserted_primary_key[0]
     
     yield user_uuid
 
     # Delete all posts for the user first
-    await async_session.execute(delete(Post).where(Post.author_uuid == user_uuid))
+    await async_session.exec(delete(Post).where(Post.author_uuid == user_uuid))
     await async_session.commit()
 
     # Now delete the user
-    await async_session.execute(delete(User).where(User.uuid == user_uuid))
+    await async_session.exec(delete(User).where(User.uuid == user_uuid))
     await async_session.commit()
 
+@pytest.fixture
+async def test_post(async_session: AsyncSession, test_user):
+    post_data = {
+        "title": "Test Post",
+        "content": "This is a test post",
+        "author_uuid": test_user
+    }
+    post_stmt = insert(Post).values(post_data)
+    result = await async_session.exec(post_stmt)
+    await async_session.commit()
+    post_uuid = result.inserted_primary_key[0]
+    yield post_uuid
+    await async_session.exec(delete(Post).where(Post.uuid == post_uuid))
+    await async_session.commit()
 
 # tests
 
@@ -159,42 +173,41 @@ async def test_create_post(async_client: AsyncClient, async_session: AsyncSessio
     for k, v in want.items():
         assert getattr(post, k) == v
 
-# @pytest.mark.asyncio
-# async def test_get_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
-#     response = await async_client.get(f"/posts/{test_post}")
+@pytest.mark.asyncio
+async def test_get_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+    response = await async_client.get(f"/posts/{test_post}")
     
-#     assert response.status_code == 200
-#     got = response.json()
-#     want = test_data["post_case_get"]["want"]
+    assert response.status_code == 200
+    got = response.json()
+    want = test_data["post_case_get"]["want"]
     
-#     for k, v in want.items():
-#         assert got[k] == v
+    for k, v in want.items():
+        assert got[k] == v
 
-# @pytest.mark.asyncio
-# async def test_update_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
-#     payload = test_data["post_case_patch"]["payload"]
-#     response = await async_client.patch(f"/posts/{test_post}", json=payload)
+@pytest.mark.asyncio
+async def test_update_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+    payload = test_data["post_case_patch"]["payload"]
+    response = await async_client.patch(f"/posts/{test_post}", json=payload)
     
-#     assert response.status_code == 200
-#     got = response.json()
-#     want = test_data["post_case_patch"]["want"]
+    assert response.status_code == 200
+    got = response.json()
+    want = test_data["post_case_patch"]["want"]
     
-#     for k, v in want.items():
-#         assert got[k] == v
+    for k, v in want.items():
+        assert got[k] == v
 
-# @pytest.mark.asyncio
-# async def test_delete_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
-#     response = await async_client.delete(f"/posts/{test_post}")
+@pytest.mark.asyncio
+async def test_delete_post_by_id(async_client: AsyncClient, async_session: AsyncSession, test_data: dict, test_post):
+    response = await async_client.delete(f"/posts/{test_post}")
     
-#     assert response.status_code == 200
-#     got = response.json()
-#     want = test_data["post_case_delete"]["want"]
+    assert response.status_code == 200
+    got = response.json()
+    want = test_data["post_case_delete"]["want"]
     
-#     assert got == want
+    assert got == want
     
-#     # Check post was deleted from the database
-#     statement = select(Post).where(Post.uuid == test_post)
-#     results = await async_session.exec(statement)
-#     post = results.scalar_one_or_none()
+    statement = select(Post).where(Post.uuid == test_post)
+    results = await async_session.exec(statement)
+    post = results.scalar_one_or_none()
     
-#     assert post is None
+    assert post is None

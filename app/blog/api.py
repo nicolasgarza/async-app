@@ -3,7 +3,7 @@ from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.blog.crud import BlogCRUD
 from app.blog.dependencies import get_blog_crud
-from app.blog.models import UserCreate, UserRead, UserUpdate, PostCreate, PostRead, CommentCreate, CommentRead
+from app.blog.models import UserCreate, UserRead, UserUpdate, PostCreate, PostRead, PostUpdate, CommentCreate, CommentRead
 from app.core.models import StatusMessage
 
 router = APIRouter()
@@ -57,7 +57,9 @@ async def delete_user_by_id(
     user_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_user(user_uuid=user_uuid)
+    deleted = await crud.delete_user(user_uuid=user_uuid)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
     return {"status": True, "message": "User has been deleted!"}
 
 # Post endpoints
@@ -90,19 +92,19 @@ async def get_post_by_id(
 
 @router.patch(
     "/posts/{post_uuid}",
-    response_model=PostRead,
+    response_model=PostUpdate,
     status_code=http_status.HTTP_200_OK
 )
 async def update_post_by_id(
     post_uuid: str,
-    data: PostCreate,
+    data: PostUpdate,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
     post = await crud.update_post(post_uuid=post_uuid, data=data)
     return post
 
 @router.delete(
-    "/posts/{post_id}",
+    "/posts/{post_uuid}",
     response_model=StatusMessage,
     status_code=http_status.HTTP_200_OK
 )
@@ -110,8 +112,10 @@ async def delete_post_by_id(
     post_uuid: str,
     crud: BlogCRUD = Depends(get_blog_crud)
 ):
-    await crud.delete_post(post_uuid=post_uuid)
-    return {"status": True, "message": "Post has been deleted"}
+    deleted = await crud.delete_post(post_uuid=post_uuid)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return {"status": True, "message": "Post has been deleted!"}
 
 # Comment endpoints
 @router.post(
